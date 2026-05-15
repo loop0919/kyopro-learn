@@ -962,7 +962,7 @@
         <div>
           <p class="kicker">Binary Search Basics</p>
           <h1>二分探索の基礎</h1>
-          <p class="lead">単調性を持った Yes / No 問題に帰着させて、境界を高速に探す。</p>
+          <p class="lead">Yes / No が一度だけ切り替わる問題に直して、境界を高速に探す。</p>
           <div class="tag-row">
             <span class="tag">Python</span>
             <span class="tag">while文</span>
@@ -1117,10 +1117,10 @@
       </div>
     </section>
 
-    <section class="slide" data-slide data-title="単調性" hidden>
+    <section class="slide" data-slide data-title="Yes / No の切り替わり" hidden>
       <div class="slide-inner">
-        <p class="kicker">Monotonicity</p>
-        <h2>二分探索できる条件: 単調性</h2>
+        <p class="kicker">Pattern</p>
+        <h2>二分探索できる形: Yes / No が一度だけ切り替わる</h2>
         <div class="three">
           <div class="card">
             <span class="mini-label">OK</span>
@@ -1135,7 +1135,7 @@
             <code>Yes, No, Yes, No</code>
           </div>
         </div>
-        <p class="large">中央を見たあと「どちら側を捨てるか」が決まることが必要です。</p>
+        <p class="large">中央を見たあと「どちら側を捨てるか」が決まることが必要です。この性質を、競プロでは「単調性」と呼びます。</p>
       </div>
     </section>
 
@@ -1146,7 +1146,7 @@
         <div class="three">
           <div class="card"><span class="mini-label">直感</span>候補を半分にする質問で、探索範囲を一気に小さくする。</div>
           <div class="card yellow"><span class="mini-label">見方</span>値の関係を Yes / No の列として見る。</div>
-          <div class="card red"><span class="mini-label">条件</span>Yes と No が一度だけ切り替わる単調性が必要。</div>
+          <div class="card red"><span class="mini-label">条件</span>Yes と No が一度だけ切り替わる形が必要。</div>
         </div>
         <p class="large">二分探索は「全部試す」ではなく、「境界を探す」ための考え方です。</p>
       </div>
@@ -1496,7 +1496,7 @@ print(ok)</code></pre>
     <section class="slide" data-slide data-title="章扉 問題を解く" hidden>
       <div class="slide-inner section-cover">
         <h2>問題を解く</h2>
-        <p class="lead">問題を単調な Yes / No 判定に落とし込む練習をします。</p>
+        <p class="lead">問題を Yes / No が一度だけ切り替わる判定に落とし込む練習をします。</p>
       </div>
     </section>
 
@@ -1507,7 +1507,7 @@ print(ok)</code></pre>
         <div class="three">
           <div class="card"><span class="mini-label">1</span>値を仮定する</div>
           <div class="card yellow"><span class="mini-label">2</span>Yes / No 判定を作る</div>
-          <div class="card red"><span class="mini-label">3</span>単調性を見て境界を探す</div>
+          <div class="card red"><span class="mini-label">3</span>Yes / No の切り替わりを見て境界を探す</div>
         </div>
         <p class="large">「答えを直接求める」のが難しいとき、まず「この値は達成できるか？」に直す。</p>
       </div>
@@ -1577,7 +1577,7 @@ print(ok)</code></pre>
       </div>
     </section>
 
-    <section class="slide" data-slide data-title="ABC231 C 単調性" hidden>
+    <section class="slide" data-slide data-title="ABC231 C 境界" hidden>
       <div class="slide-inner split">
         <div>
           <p class="kicker">ABC231 C</p>
@@ -1615,7 +1615,7 @@ print(ok)</code></pre>
         <h2>最初の Yes を <code>bisect_left</code> で探す</h2>
         <div class="three">
           <div class="card"><span class="mini-label">判定</span>\(A_i \ge x\)</div>
-          <div class="card yellow"><span class="mini-label">単調性</span><code>No ... No, Yes ... Yes</code></div>
+          <div class="card yellow"><span class="mini-label">切り替わり</span><code>No ... No, Yes ... Yes</code></div>
           <div class="card red"><span class="mini-label">境界</span>\(x\) 以上になる最小の <code>idx</code></div>
         </div>
         <p class="large"><code>bisect_left(A, x)</code> は、まさに「\(x\) 以上の最初の位置」を返します。</p>
@@ -1762,7 +1762,7 @@ for _ in range(Q):
         <h2>右端の Yes を <code>bisect_right</code> で数える</h2>
         <div class="three">
           <div class="card"><span class="mini-label">判定</span><code>A[i] &lt;= a // 2</code></div>
-          <div class="card yellow"><span class="mini-label">単調性</span><code>Yes ... Yes, No ... No</code></div>
+          <div class="card yellow"><span class="mini-label">切り替わり</span><code>Yes ... Yes, No ... No</code></div>
           <div class="card red"><span class="mini-label">境界</span><code>a // 2</code> 以下の個数</div>
         </div>
         <p class="large"><code>bisect_right(A, a // 2)</code> は「<code>a // 2</code> 以下の要素数」を返します。</p>
@@ -1879,7 +1879,7 @@ print(ans)</code></pre>
           <ul class="points">
             <li>答え候補として、値 <code>x</code> を仮定する</li>
             <li>問題を「最短ピース長を \(x\) 以上にできるか？」に変える</li>
-            <li>この Yes / No が単調なら、境界を探せる</li>
+            <li>この Yes / No が一方向に切り替わるなら、境界を探せる</li>
           </ul>
         </div>
         <div class="problem-statement">
@@ -1924,7 +1924,7 @@ print(ans)</code></pre>
       </div>
     </section>
 
-    <section class="slide" data-slide data-title="Typical90 001 単調性" hidden>
+    <section class="slide" data-slide data-title="Typical90 001 境界" hidden>
       <div class="slide-inner">
         <p class="kicker">Typical90 001</p>
         <h2>\(x\) が小さいほど Yes、大きいほど No</h2>
@@ -2017,7 +2017,7 @@ while ng - ok &gt; 1:
           </div>
           <div class="card yellow">
             <span class="mini-label">Step 2</span>
-            Yes / No が一度だけ切り替わる単調性を確認する。
+            Yes / No が一度だけ切り替わることを確認する。
           </div>
           <div class="card red">
             <span class="mini-label">Step 3</span>
@@ -2030,7 +2030,7 @@ while ng - ok &gt; 1:
               <th>問題</th>
               <th>仮定する値</th>
               <th>判定</th>
-              <th>単調性</th>
+              <th>切り替わり</th>
               <th>道具</th>
             </tr>
           </thead>
@@ -2058,7 +2058,7 @@ while ng - ok &gt; 1:
             </tr>
           </tbody>
         </table>
-        <p class="large">二分探索は「中央を見るテクニック」ではなく、「単調な判定の境界を探す考え方」です。</p>
+        <p class="large">二分探索は「中央を見るテクニック」ではなく、「Yes / No が切り替わる境界を探す考え方」です。</p>
       </div>
     </section>
 
@@ -2239,7 +2239,7 @@ while ng - ok &gt; 1:
           { start: 2, end: 2, range: "3", label: "1〜100の数当て" },
           { start: 3, end: 3, range: "4", label: "候補を半分にする" },
           { start: 4, end: 4, range: "5", label: "Yes / Noで見てみる" },
-          { start: 5, end: 5, range: "6", label: "単調性" },
+          { start: 5, end: 5, range: "6", label: "Yes / No の切り替わり" },
           { start: 6, end: 6, range: "7", label: "章のまとめ" }
         ]
       },
