@@ -1159,6 +1159,35 @@
       </div>
     </section>
 
+    <section class="slide" data-slide data-title="while テンプレート" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / while</p>
+          <h2>まずテンプレート全体を見る</h2>
+          <ul class="points">
+            <li>この章では、下の形を部品ごとに分解します</li>
+            <li><code>ok</code> は Yes 側、<code>ng</code> は No 側として置く</li>
+            <li>最大の Yes を探すとき、最後に残る <code>ok</code> が答え</li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>最大のYesを探す</span><span>Python</span></div>
+          <pre><code class="language-python">ok = 0
+ng = N + 1
+
+while ng - ok &gt; 1:
+    mid = (ok + ng) // 2
+
+    if is_valid(mid):
+        ok = mid
+    else:
+        ng = mid
+
+print(ok)</code></pre>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-slide data-title="while 境界" hidden>
       <div class="slide-inner split">
         <div>
@@ -1251,27 +1280,26 @@ ng = N + 1      # No と分かっている値
       <div class="slide-inner split">
         <div>
           <p class="kicker">Implementation / while</p>
-          <h2>終了条件とテンプレート</h2>
+          <h2>終了条件は <code>ok</code> と <code>ng</code> の距離</h2>
           <ul class="points">
-            <li><code>ng - ok &gt; 1</code> の間は、まだ間に候補がある</li>
-            <li>終了時は <code>ng - ok == 1</code></li>
-            <li>最大の Yes は <code>ok</code></li>
+            <li>間に候補がある間だけループする</li>
+            <li>Yes が左、No が右なら <code>ng - ok &gt; 1</code></li>
+            <li>小さい方が No、大きい方が Yes なら <code>ok - ng &gt; 1</code></li>
           </ul>
         </div>
         <div class="code-panel">
-          <div class="code-title"><span>最大のYesを探す</span><span>Python</span></div>
-          <pre><code class="language-python">ok = 0
-ng = N + 1
-
+          <div class="code-title"><span>左右で差分の向きが変わる</span><span>Python</span></div>
+          <pre><code class="language-python"># Yes ... Yes, No ... No
+ok = 0          # Yes 側
+ng = N + 1      # No 側
 while ng - ok &gt; 1:
-    mid = (ok + ng) // 2
+    ...
 
-    if is_valid(mid):
-        ok = mid
-    else:
-        ng = mid
-
-print(ok)</code></pre>
+# No ... No, Yes ... Yes
+ng = -1         # No 側
+ok = N          # Yes 側
+while ok - ng &gt; 1:
+    ...</code></pre>
         </div>
       </div>
     </section>
@@ -1283,7 +1311,7 @@ print(ok)</code></pre>
         <div class="three">
           <div class="card"><span class="mini-label">Invariant</span><code>ok</code> は常に Yes、<code>ng</code> は常に No。</div>
           <div class="card yellow"><span class="mini-label">Update</span><code>mid</code> を判定し、Yesなら <code>ok</code>、Noなら <code>ng</code> を動かす。</div>
-          <div class="card red"><span class="mini-label">Finish</span><code>ng - ok == 1</code> で境界が確定し、答えは <code>ok</code>。</div>
+          <div class="card red"><span class="mini-label">Finish</span><code>ok</code> と <code>ng</code> が隣り合ったら境界が確定し、答えは <code>ok</code>。</div>
         </div>
         <p class="large">不変条件を決めてから書くと、境界条件を追いやすくなります。</p>
       </div>
@@ -2100,7 +2128,7 @@ while ng - ok &gt; 1:
       <span>目次</span>
     </button>
     <div class="dots" id="slideDots" aria-label="スライド一覧"></div>
-    <span class="counter" id="slideCounter">1 / 42</span>
+    <span class="counter" id="slideCounter">1 / 43</span>
     <button class="primary" id="nextSlide" type="button">次へ</button>
   </nav>
 
@@ -2218,16 +2246,16 @@ while ng - ok &gt; 1:
     const CHAPTERS = [
       { start: 0, end: 0, range: "1", label: "タイトル" },
       { start: 1, end: 6, range: "2-7", label: "概要" },
-      { start: 7, end: 12, range: "8-13", label: "実装(while文)" },
-      { start: 13, end: 19, range: "14-20", label: "実装(bisectライブラリ)" },
-      { start: 20, end: 20, range: "21", label: "問題を解く" },
-      { start: 21, end: 21, range: "22", label: "問題を解く型" },
-      { start: 22, end: 26, range: "23-27", label: "1問目: ABC231 C" },
-      { start: 27, end: 31, range: "28-32", label: "2問目: ABC388 C" },
-      { start: 32, end: 37, range: "33-38", label: "3問目: Typical90 001" },
-      { start: 38, end: 38, range: "39", label: "問題を解くまとめ" },
-      { start: 39, end: 40, range: "40-41", label: "今日のまとめ" },
-      { start: 41, end: 41, range: "42", label: "練習問題・応用問題" }
+      { start: 7, end: 13, range: "8-14", label: "実装(while文)" },
+      { start: 14, end: 20, range: "15-21", label: "実装(bisectライブラリ)" },
+      { start: 21, end: 21, range: "22", label: "問題を解く" },
+      { start: 22, end: 22, range: "23", label: "問題を解く型" },
+      { start: 23, end: 27, range: "24-28", label: "1問目: ABC231 C" },
+      { start: 28, end: 32, range: "29-33", label: "2問目: ABC388 C" },
+      { start: 33, end: 38, range: "34-39", label: "3問目: Typical90 001" },
+      { start: 39, end: 39, range: "40", label: "問題を解くまとめ" },
+      { start: 40, end: 41, range: "41-42", label: "今日のまとめ" },
+      { start: 42, end: 42, range: "43", label: "練習問題・応用問題" }
     ];
 
     const MENU_SECTIONS = [
@@ -2244,35 +2272,36 @@ while ng - ok &gt; 1:
         ]
       },
       {
-        heading: "8-13. 実装(while文)",
+        heading: "8-14. 実装(while文)",
         items: [
           { start: 7, end: 7, range: "8", label: "章の概要" },
-          { start: 8, end: 8, range: "9", label: "境界をはさむ" },
-          { start: 9, end: 9, range: "10", label: "めぐる式の不変条件" },
-          { start: 10, end: 10, range: "11", label: "midの更新" },
-          { start: 11, end: 11, range: "12", label: "while文テンプレート" },
-          { start: 12, end: 12, range: "13", label: "章のまとめ" }
+          { start: 8, end: 8, range: "9", label: "while文テンプレート" },
+          { start: 9, end: 9, range: "10", label: "境界をはさむ" },
+          { start: 10, end: 10, range: "11", label: "めぐる式の不変条件" },
+          { start: 11, end: 11, range: "12", label: "midの更新" },
+          { start: 12, end: 12, range: "13", label: "終了条件" },
+          { start: 13, end: 13, range: "14", label: "章のまとめ" }
         ]
       },
       {
-        heading: "14-20. 実装(bisectライブラリ)",
+        heading: "15-21. 実装(bisectライブラリ)",
         items: [
-          { start: 13, end: 13, range: "14", label: "章の概要" },
-          { start: 14, end: 14, range: "15", label: "bisectは挿入位置" },
-          { start: 15, end: 15, range: "16", label: "bisect_left" },
-          { start: 16, end: 16, range: "17", label: "bisect_right" },
-          { start: 17, end: 17, range: "18", label: "[l, r) は等しい区間" },
-          { start: 18, end: 18, range: "19", label: "個数計算表" },
-          { start: 19, end: 19, range: "20", label: "章のまとめ" }
+          { start: 14, end: 14, range: "15", label: "章の概要" },
+          { start: 15, end: 15, range: "16", label: "bisectは挿入位置" },
+          { start: 16, end: 16, range: "17", label: "bisect_left" },
+          { start: 17, end: 17, range: "18", label: "bisect_right" },
+          { start: 18, end: 18, range: "19", label: "[l, r) は等しい区間" },
+          { start: 19, end: 19, range: "20", label: "個数計算表" },
+          { start: 20, end: 20, range: "21", label: "章のまとめ" }
         ]
       },
-      { heading: "21-39. 問題を解く", items: [CHAPTERS[4], CHAPTERS[5], CHAPTERS[6], CHAPTERS[7], CHAPTERS[8], CHAPTERS[9]] },
+      { heading: "22-40. 問題を解く", items: [CHAPTERS[4], CHAPTERS[5], CHAPTERS[6], CHAPTERS[7], CHAPTERS[8], CHAPTERS[9]] },
       {
-        heading: "40-42. まとめ",
+        heading: "41-43. まとめ",
         items: [
-          { start: 39, end: 39, range: "40", label: "章の概要" },
-          { start: 40, end: 40, range: "41", label: "今日のまとめ" },
-          { start: 41, end: 41, range: "42", label: "練習問題・応用問題" }
+          { start: 40, end: 40, range: "41", label: "章の概要" },
+          { start: 41, end: 41, range: "42", label: "今日のまとめ" },
+          { start: 42, end: 42, range: "43", label: "練習問題・応用問題" }
         ]
       }
     ];
