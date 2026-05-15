@@ -1,0 +1,2429 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>二分探索の基礎スライド</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --ink: #172033;
+      --muted: #64748b;
+      --line: #d8e0e7;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --green: #15803d;
+      --green-soft: #dcfce7;
+      --red: #b42318;
+      --red-soft: #fee4e2;
+      --yellow: #a16207;
+      --yellow-soft: #fef3c7;
+      --violet: #6d28d9;
+      --code-bg: #172033;
+      --radius: 8px;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 1.1rem 1.1rem 5.2rem;
+      display: grid;
+      place-items: center;
+    }
+
+    code {
+      font-family: var(--mono);
+    }
+
+    code:not(pre code) {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f6f8fb;
+      padding: 0.1rem 0.32rem;
+      font-size: 0.92em;
+    }
+
+    .deck-shell {
+      width: min(calc(100vw - 2.2rem), calc((100vh - 7.4rem) * 16 / 9), 1280px);
+      margin: 0 auto;
+    }
+
+    .slide {
+      display: none;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(219, 234, 254, 0.36), transparent 30%),
+        var(--surface);
+      box-shadow: 0 22px 60px rgba(23, 32, 51, 0.12);
+      overflow: hidden;
+    }
+
+    .slide.is-active {
+      display: grid;
+    }
+
+    .slide-inner {
+      width: 100%;
+      min-height: 100%;
+      display: grid;
+      gap: 1.25rem;
+      padding: clamp(1.2rem, 3.1vw, 2.35rem);
+      align-content: center;
+      overflow: hidden;
+    }
+
+    .split {
+      grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+      align-items: center;
+    }
+
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .kicker {
+      margin: 0 0 0.35rem;
+      color: var(--green);
+      font-size: 0.9rem;
+      font-weight: 900;
+    }
+
+    .chapter-badge {
+      position: absolute;
+      top: 0.8rem;
+      right: 0.9rem;
+      z-index: 2;
+      max-width: min(34rem, calc(100% - 1.8rem));
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--muted);
+      padding: 0.14rem 0.62rem;
+      font-size: clamp(0.7rem, 1vw, 0.82rem);
+      font-weight: 900;
+      line-height: 1.45;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+
+    .section-cover {
+      min-height: 100%;
+      align-content: center;
+      justify-items: center;
+      gap: 1rem;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(37, 99, 235, 0.28), transparent 34%),
+        linear-gradient(135deg, #0f172a 0%, #172033 54%, #0b1120 100%);
+      color: #f8fafc;
+      text-align: center;
+    }
+
+    .section-cover h2 {
+      max-width: 11em;
+      color: #f8fafc;
+      font-size: clamp(3rem, 7vw, 5.6rem);
+      line-height: 1.12;
+    }
+
+    .section-cover .lead {
+      max-width: 38rem;
+      color: #cbd5e1;
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      line-height: 1.7;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 960px;
+      font-size: clamp(2.6rem, 5.7vw, 5.1rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      max-width: 980px;
+      font-size: clamp(1.85rem, 4vw, 3.35rem);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h2 code:not(pre code) {
+      display: inline-block;
+      max-width: 100%;
+      white-space: nowrap;
+      font-size: min(0.82em, 2.7rem);
+      line-height: 1.08;
+      vertical-align: baseline;
+    }
+
+    .split h2 {
+      font-size: clamp(1.75rem, 3vw, 2.55rem);
+      line-break: strict;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+      word-break: keep-all;
+    }
+
+    .split h2 code:not(pre code) {
+      font-size: min(0.84em, 2.1rem);
+    }
+
+    h3 {
+      font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+      line-height: 1.25;
+    }
+
+    .lead {
+      max-width: 860px;
+      color: #334155;
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+    }
+
+    .overview-title {
+      max-width: none;
+      font-size: clamp(1.45rem, 2.55vw, 2.35rem);
+      line-height: 1.24;
+    }
+
+    .problem-link {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      margin-top: 0.42rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f8fafc;
+      color: var(--blue);
+      padding: 0.16rem 0.62rem;
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .problem-link:hover,
+    .problem-link:focus-visible {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      outline: none;
+    }
+
+    .overview-lead {
+      max-width: 860px;
+      margin-top: 0.65rem;
+      color: #334155;
+      font-size: clamp(0.98rem, 1.45vw, 1.12rem);
+      font-weight: 700;
+      line-height: 1.7;
+    }
+
+    .problem-statement {
+      display: grid;
+      gap: 0.58rem;
+      margin-top: 0.9rem;
+    }
+
+    .statement-box {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 0.58rem 0.72rem;
+    }
+
+    .statement-box.green {
+      border-left-color: var(--green);
+    }
+
+    .statement-box.yellow {
+      border-left-color: var(--yellow);
+    }
+
+    .statement-box h3 {
+      margin: 0 0 0.25rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .statement-box p,
+    .statement-box li {
+      color: #334155;
+      font-size: clamp(0.82rem, 1.08vw, 0.98rem);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .statement-box p + p {
+      margin-top: 0.34rem;
+    }
+
+    .statement-box ul {
+      display: grid;
+      gap: 0.18rem;
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .statement-cols {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.58rem;
+    }
+
+    .statement-box pre {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      color: var(--ink);
+      padding: 0.48rem 0.58rem;
+      font-size: clamp(0.76rem, 1vw, 0.9rem);
+      line-height: 1.45;
+    }
+
+    .statement-box pre .hljs {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .large {
+      font-size: clamp(1.1rem, 2.1vw, 1.55rem);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 1rem;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f8fafc;
+      color: var(--muted);
+      padding: 0.22rem 0.65rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .points {
+      display: grid;
+      gap: 0.7rem;
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .points li,
+    .card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 0.75rem 0.9rem;
+      color: #334155;
+      font-size: clamp(0.98rem, 1.6vw, 1.12rem);
+      font-weight: 700;
+    }
+
+    .card {
+      border-left-color: var(--green);
+      width: 100%;
+      height: auto;
+    }
+
+    .card.red {
+      border-left-color: var(--red);
+    }
+
+    .card.yellow {
+      border-left-color: var(--yellow);
+    }
+
+    .practice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .practice-card {
+      display: grid;
+      gap: 0.35rem;
+      min-height: 9.2rem;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--green);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: rgba(255, 255, 255, 0.92);
+      color: #334155;
+      padding: 0.72rem 0.86rem;
+      text-decoration: none;
+    }
+
+    .practice-card:nth-child(2) {
+      border-left-color: var(--blue);
+    }
+
+    .practice-card:nth-child(3) {
+      border-left-color: var(--yellow);
+    }
+
+    .practice-card:nth-child(4) {
+      border-left-color: var(--red);
+    }
+
+    .practice-card:hover,
+    .practice-card:focus-visible {
+      border-color: var(--blue);
+      background: #f8fafc;
+      outline: none;
+    }
+
+    .practice-title {
+      color: var(--ink);
+      font-size: clamp(1.05rem, 1.55vw, 1.22rem);
+      font-weight: 900;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .practice-note {
+      color: #475569;
+      font-size: clamp(0.86rem, 1.22vw, 1rem);
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .mini-label {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .visual {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+      max-height: 100%;
+    }
+
+    .visual svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: min(54vh, 28rem);
+    }
+
+    .diagram-title {
+      fill: var(--ink);
+      font: 900 24px var(--sans);
+    }
+
+    .diagram-label {
+      fill: var(--muted);
+      font: 800 16px var(--sans);
+    }
+
+    .diagram-text {
+      fill: var(--ink);
+      font: 900 18px var(--mono);
+    }
+
+    .diagram-result {
+      fill: #fff;
+      font: 900 20px var(--sans);
+    }
+
+    .diagram-caption {
+      fill: var(--muted);
+      font: 800 15px var(--sans);
+    }
+
+    .guess-demo {
+      display: grid;
+      gap: 0.72rem;
+      padding: 1rem;
+    }
+
+    .guess-demo h3 {
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      text-align: center;
+    }
+
+    .guess-field {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .guess-field label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .guess-field input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .guess-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45rem;
+    }
+
+    .guess-metric {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 0.48rem 0.55rem;
+    }
+
+    .guess-metric .name {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .guess-metric .value {
+      display: block;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(0.78rem, 1.2vw, 0.95rem);
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .guess-track {
+      position: relative;
+      height: 2.2rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 9%, rgba(100, 116, 139, 0.16) 9% 10%),
+        #fff;
+      overflow: hidden;
+    }
+
+    .guess-window {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-inline: 2px solid var(--blue);
+      background: rgba(37, 99, 235, 0.16);
+    }
+
+    .guess-secret,
+    .guess-mid {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      transform: translateX(-50%);
+      background: var(--green);
+    }
+
+    .guess-mid {
+      background: var(--red);
+    }
+
+    .guess-labels,
+    .guess-legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 900;
+    }
+
+    .guess-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .guess-actions button {
+      flex: 1 1 8rem;
+    }
+
+    .guess-log {
+      min-height: 5rem;
+      max-height: 7.5rem;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 0.55rem 0.65rem;
+      color: #334155;
+      font-size: clamp(0.76rem, 1.05vw, 0.88rem);
+      line-height: 1.55;
+    }
+
+    .guess-log p {
+      margin: 0;
+    }
+
+    .guess-log p + p {
+      margin-top: 0.22rem;
+    }
+
+    .code-panel {
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      overflow: hidden;
+    }
+
+    .code-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd7ee;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.84rem;
+      font-weight: 900;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem;
+      overflow-x: auto;
+      color: #edf2ff;
+      font-family: var(--mono);
+      font-size: clamp(0.82rem, 1.2vw, 1rem);
+      line-height: 1.58;
+      tab-size: 4;
+    }
+
+    .code-panel .hljs {
+      padding: 0;
+      background: transparent;
+    }
+
+    .compare {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.78rem, 1.25vw, 0.98rem);
+    }
+
+    .compare th,
+    .compare td {
+      border: 1px solid var(--line);
+      padding: 0.58rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .compare th {
+      background: #eef4f8;
+      color: #334155;
+      font-weight: 900;
+    }
+
+    .compare td {
+      background: #fff;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 1rem;
+      z-index: 20;
+      width: min(1280px, calc(100vw - 2.2rem));
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 0.7rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 0.65rem;
+      box-shadow: 0 18px 45px rgba(23, 32, 51, 0.14);
+    }
+
+    button {
+      min-height: 2.35rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 900;
+      padding: 0.38rem 0.8rem;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .dots {
+      display: flex;
+      gap: 0.28rem;
+      align-items: center;
+      justify-content: center;
+      overflow-x: auto;
+      padding: 0.2rem;
+    }
+
+    .dot {
+      width: 0.65rem;
+      height: 0.65rem;
+      min-height: 0;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border-color: #b8c4d2;
+      background: #e7edf3;
+      padding: 0;
+    }
+
+    .dot.is-active {
+      border-color: var(--blue);
+      background: var(--blue);
+    }
+
+    .counter {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 30;
+      height: 4px;
+      width: var(--progress, 2.38%);
+      background: var(--blue);
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+
+    .hamburger {
+      display: grid;
+      gap: 0.22rem;
+      width: 1.1rem;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .appendix-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(15, 23, 42, 0.28);
+      backdrop-filter: blur(2px);
+    }
+
+    .appendix-backdrop[hidden] {
+      display: none;
+    }
+
+    .appendix-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 41;
+      width: min(430px, calc(100vw - 1rem));
+      border: 1px solid var(--line);
+      border-right: 0;
+      border-radius: var(--radius) 0 0 var(--radius);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 20px 50px rgba(23, 32, 51, 0.16);
+      padding: 1rem;
+      overflow: auto;
+    }
+
+    .appendix-panel[hidden] {
+      display: none;
+    }
+
+    .appendix-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .appendix-head h2 {
+      max-width: none;
+      font-size: 1.15rem;
+      line-height: 1.3;
+    }
+
+    .appendix-menu {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .appendix-section {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .appendix-section h3 {
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--muted);
+      padding: 0.5rem 0.65rem;
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .appendix-items {
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.5rem;
+    }
+
+    .appendix-link {
+      min-height: auto;
+      border-radius: 6px;
+      border-color: transparent;
+      background: #fff;
+      text-align: left;
+      padding: 0.5rem 0.58rem;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .appendix-link.is-current {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #1d4ed8;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 0.75rem 0.75rem 7rem;
+        display: block;
+      }
+
+      .deck-shell {
+        width: auto;
+      }
+
+      .slide {
+        aspect-ratio: auto;
+        min-height: auto;
+      }
+
+      .split,
+      .three,
+      .practice-grid,
+      .statement-cols {
+        grid-template-columns: 1fr;
+      }
+
+      .slide-inner {
+        min-height: auto;
+        padding: 1.1rem;
+        overflow: visible;
+      }
+
+      .chapter-badge {
+        position: static;
+        justify-self: start;
+        margin: 0.8rem 0 0 1.1rem;
+      }
+
+      .visual svg {
+        max-height: none;
+      }
+
+      .guess-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: 1fr 1fr auto auto;
+      }
+
+      .dots {
+        grid-column: 1 / -1;
+        order: -1;
+      }
+
+      .appendix-panel {
+        width: min(390px, calc(100vw - 0.75rem));
+      }
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+
+      .controls,
+      .progress,
+      .appendix-backdrop,
+      .appendix-panel {
+        display: none;
+      }
+
+      .deck-shell {
+        max-width: none;
+      }
+
+      .slide,
+      .slide.is-active {
+        display: grid;
+        min-height: 100vh;
+        page-break-after: always;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .slide[hidden] {
+        display: grid !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <main class="deck-shell" aria-live="polite">
+    <section class="slide is-active" data-slide data-title="タイトル">
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Binary Search Basics</p>
+          <h1>二分探索の基礎</h1>
+          <p class="lead">単調性を持った Yes / No 問題に帰着させて、境界を高速に探す。</p>
+          <div class="tag-row">
+            <span class="tag">Python</span>
+            <span class="tag">while文</span>
+            <span class="tag">bisect</span>
+            <span class="tag">AtCoder</span>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="YesとNoの境界を探す図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="60" text-anchor="middle" class="diagram-title">Yes と No の境界を探す</text>
+            <rect x="70" y="150" width="125" height="78" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="210" y="150" width="125" height="78" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="350" y="150" width="125" height="78" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <rect x="490" y="150" width="80" height="78" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <text x="132" y="198" text-anchor="middle" class="diagram-result">Yes</text>
+            <text x="272" y="198" text-anchor="middle" class="diagram-result">Yes</text>
+            <text x="412" y="198" text-anchor="middle" class="diagram-result">No</text>
+            <text x="530" y="198" text-anchor="middle" class="diagram-result">No</text>
+            <line x1="342" y1="118" x2="342" y2="272" stroke="#2563eb" stroke-width="5" stroke-dasharray="11 8"></line>
+            <text x="342" y="310" text-anchor="middle" class="diagram-caption">ここを O(log N) で見つける</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="章扉 概要" hidden>
+      <div class="slide-inner section-cover">
+        <h2>概要</h2>
+        <p class="lead">二分探索を「境界を探す」発想として眺めます。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="1〜100の数当て" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Intuition</p>
+          <h2>1〜100の数当て</h2>
+          <p class="lead">1つずつ聞くと、最悪100回。中央で分ける質問なら、候補を一気に減らせます。</p>
+          <ul class="points">
+            <li>質問: 「50以下ですか？」</li>
+            <li>Yesなら候補は <code>1〜50</code></li>
+            <li>Noなら候補は <code>51〜100</code></li>
+          </ul>
+        </div>
+        <div class="visual guess-demo" aria-labelledby="slideGuessTitle">
+          <h3 id="slideGuessTitle">1〜100の数当てデモ</h3>
+          <div class="guess-field">
+            <label for="slideGuessSecret">秘密の数字: <span id="slideGuessSecretValue">73</span></label>
+            <input id="slideGuessSecret" type="range" min="1" max="100" value="73">
+          </div>
+          <div class="guess-metrics">
+            <div class="guess-metric">
+              <span class="name">候補範囲</span>
+              <span class="value" id="slideGuessRange">1〜100</span>
+            </div>
+            <div class="guess-metric">
+              <span class="name">次の質問</span>
+              <span class="value" id="slideGuessQuestion">50以下ですか?</span>
+            </div>
+            <div class="guess-metric">
+              <span class="name">質問回数</span>
+              <span class="value" id="slideGuessCount">0</span>
+            </div>
+          </div>
+          <div class="guess-track" aria-hidden="true">
+            <div class="guess-window" id="slideGuessWindow"></div>
+            <div class="guess-secret" id="slideGuessSecretLine"></div>
+            <div class="guess-mid" id="slideGuessMidLine"></div>
+          </div>
+          <div class="guess-labels">
+            <span>1</span>
+            <span>100</span>
+          </div>
+          <div class="guess-legend">
+            <span>緑線: 秘密の数字</span>
+            <span>赤線: 質問する境目</span>
+          </div>
+          <div class="guess-actions">
+            <button class="primary" id="slideGuessStep" type="button">次の質問</button>
+            <button id="slideGuessReset" type="button">リセット</button>
+          </div>
+          <div class="guess-log" id="slideGuessLog" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="候補を半分にする" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Why Fast?</p>
+        <h2>1回ごとに候補を半分にする</h2>
+        <div class="visual">
+          <svg viewBox="0 0 900 360" role="img" aria-label="候補範囲が半分に減っていく図">
+            <rect width="900" height="360" fill="#ffffff"></rect>
+            <text x="450" y="48" text-anchor="middle" class="diagram-title">100 → 50 → 25 → 13 → 7 → 4 → 2 → 1</text>
+            <g transform="translate(90 96)">
+              <rect x="0" y="0" width="720" height="34" rx="8" fill="#dbeafe"></rect>
+              <rect x="0" y="52" width="360" height="34" rx="8" fill="#dcfce7"></rect>
+              <rect x="0" y="104" width="180" height="34" rx="8" fill="#fef3c7"></rect>
+              <rect x="0" y="156" width="94" height="34" rx="8" fill="#fee4e2"></rect>
+              <rect x="0" y="208" width="50" height="34" rx="8" fill="#ede9fe"></rect>
+              <text x="-20" y="24" text-anchor="end" class="diagram-caption">100個</text>
+              <text x="-20" y="76" text-anchor="end" class="diagram-caption">50個</text>
+              <text x="-20" y="128" text-anchor="end" class="diagram-caption">25個</text>
+              <text x="-20" y="180" text-anchor="end" class="diagram-caption">13個</text>
+              <text x="-20" y="232" text-anchor="end" class="diagram-caption">...</text>
+            </g>
+          </svg>
+        </div>
+        <p class="large">候補数が \(N\) なら、必要な質問回数はだいたい \(\log_2 N\) 回です。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Yes/Noで見てみる" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Yes / No</p>
+          <h2>数当てを Yes / No で見てみる</h2>
+          <p class="lead">競プロでは「答えそのもの」ではなく、「条件を満たすか？」に直して考えます。</p>
+          <ul class="points">
+            <li>\(1 \le x\) は Yes</li>
+            <li>\(3 > x\) は No</li>
+            <li>境界は Yes と No の切れ目</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="値の関係をYes Noに変換する図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="54" text-anchor="middle" class="diagram-title">値の関係 → Yes / No</text>
+            <text x="70" y="132" class="diagram-label">値</text>
+            <text x="70" y="252" class="diagram-label">判定</text>
+            <rect x="140" y="96" width="105" height="56" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+            <rect x="260" y="96" width="105" height="56" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+            <rect x="380" y="96" width="105" height="56" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <rect x="500" y="96" width="85" height="56" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <text x="192" y="132" text-anchor="middle" class="diagram-text">1&lt;=x</text>
+            <text x="312" y="132" text-anchor="middle" class="diagram-text">2&lt;=x</text>
+            <text x="432" y="132" text-anchor="middle" class="diagram-text">3&gt;x</text>
+            <text x="542" y="132" text-anchor="middle" class="diagram-text">4&gt;x</text>
+            <rect x="140" y="216" width="105" height="62" rx="8" fill="#15803d"></rect>
+            <rect x="260" y="216" width="105" height="62" rx="8" fill="#15803d"></rect>
+            <rect x="380" y="216" width="105" height="62" rx="8" fill="#b42318"></rect>
+            <rect x="500" y="216" width="85" height="62" rx="8" fill="#b42318"></rect>
+            <text x="192" y="255" text-anchor="middle" class="diagram-result">Yes</text>
+            <text x="312" y="255" text-anchor="middle" class="diagram-result">Yes</text>
+            <text x="432" y="255" text-anchor="middle" class="diagram-result">No</text>
+            <text x="542" y="255" text-anchor="middle" class="diagram-result">No</text>
+            <line x1="372" y1="78" x2="372" y2="310" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 7"></line>
+            <text x="372" y="342" text-anchor="middle" class="diagram-caption">境界</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="単調性" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Monotonicity</p>
+        <h2>二分探索できる条件: 単調性</h2>
+        <div class="three">
+          <div class="card">
+            <span class="mini-label">OK</span>
+            <code>Yes, Yes, Yes, No, No</code>
+          </div>
+          <div class="card">
+            <span class="mini-label">OK</span>
+            <code>No, No, Yes, Yes</code>
+          </div>
+          <div class="card red">
+            <span class="mini-label">NG</span>
+            <code>Yes, No, Yes, No</code>
+          </div>
+        </div>
+        <p class="large">中央を見たあと「どちら側を捨てるか」が決まることが必要です。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="概要 章まとめ" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Chapter Summary</p>
+        <h2>概要のまとめ</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">直感</span>候補を半分にする質問で、探索範囲を一気に小さくする。</div>
+          <div class="card yellow"><span class="mini-label">見方</span>値の関係を Yes / No の列として見る。</div>
+          <div class="card red"><span class="mini-label">条件</span>Yes と No が一度だけ切り替わる単調性が必要。</div>
+        </div>
+        <p class="large">二分探索は「全部試す」ではなく、「境界を探す」ための考え方です。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="章扉 while文" hidden>
+      <div class="slide-inner section-cover">
+        <h2>実装(while文)</h2>
+        <p class="lead">めぐる式二分探索で、境界をバグらせにくく書きます。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="while 境界" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / while</p>
+          <h2>境界をバグらせない考え方</h2>
+          <ul class="points">
+            <li>最大の Yes を探すなら、左側が Yes、右側が No</li>
+            <li><code>ok</code> と <code>ng</code> で境界を両側からはさむ</li>
+            <li>ループ中も「境界は必ず <code>ok</code> と <code>ng</code> の間」を保つ</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="Yes側とNo側で境界をはさむ図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="58" text-anchor="middle" class="diagram-title">Yes 側と No 側で境界をはさむ</text>
+            <rect x="82" y="170" width="476" height="74" rx="8" fill="#f8fafc" stroke="#d8e0e7"></rect>
+            <rect x="82" y="170" width="204" height="74" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="410" y="170" width="148" height="74" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <line x1="344" y1="134" x2="344" y2="280" stroke="#2563eb" stroke-width="4" stroke-dasharray="9 7"></line>
+            <circle cx="176" cy="207" r="30" fill="#15803d"></circle>
+            <circle cx="484" cy="207" r="30" fill="#b42318"></circle>
+            <text x="176" y="214" text-anchor="middle" fill="#fff" font-weight="900">ok</text>
+            <text x="484" y="214" text-anchor="middle" fill="#fff" font-weight="900">ng</text>
+            <text x="344" y="314" text-anchor="middle" class="diagram-caption">本当の境界はこの間にある</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="while 不変条件" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / while</p>
+          <h2>めぐる式: 不変条件を先に決める</h2>
+          <ul class="points">
+            <li><code>is_valid(ok)</code> は常に Yes</li>
+            <li><code>is_valid(ng)</code> は常に No</li>
+            <li>初期値は、条件が分かっている番兵として置く</li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>最大のYesを探す準備</span><span>Python</span></div>
+          <pre><code class="language-python">ok = 0          # Yes と分かっている値
+ng = N + 1      # No と分かっている値
+
+# ループ中ずっと守る:
+# is_valid(ok) == True
+# is_valid(ng) == False</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="while 1ステップ" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / while</p>
+          <h2>1ステップでは <code>mid</code> だけ判定する</h2>
+          <ul class="points">
+            <li><code>mid = (ok + ng) // 2</code></li>
+            <li>Yes なら、Yes 側の境界を <code>mid</code> まで進める</li>
+            <li>No なら、No 側の境界を <code>mid</code> まで戻す</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="mid判定後の更新">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="54" text-anchor="middle" class="diagram-title">mid の結果で片側だけ動かす</text>
+            <rect x="72" y="118" width="496" height="60" rx="8" fill="#f8fafc" stroke="#d8e0e7"></rect>
+            <circle cx="132" cy="148" r="26" fill="#15803d"></circle>
+            <circle cx="320" cy="148" r="26" fill="#2563eb"></circle>
+            <circle cx="508" cy="148" r="26" fill="#b42318"></circle>
+            <text x="132" y="155" text-anchor="middle" fill="#fff" font-weight="900">ok</text>
+            <text x="320" y="155" text-anchor="middle" fill="#fff" font-weight="900">mid</text>
+            <text x="508" y="155" text-anchor="middle" fill="#fff" font-weight="900">ng</text>
+            <rect x="104" y="245" width="170" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="366" y="245" width="170" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <text x="189" y="272" text-anchor="middle" class="diagram-caption">mid が Yes</text>
+            <text x="189" y="296" text-anchor="middle" class="diagram-text">ok = mid</text>
+            <text x="451" y="272" text-anchor="middle" class="diagram-caption">mid が No</text>
+            <text x="451" y="296" text-anchor="middle" class="diagram-text">ng = mid</text>
+            <path d="M304 176 L210 238" stroke="#15803d" stroke-width="3" fill="none"></path>
+            <path d="M336 176 L430 238" stroke="#b42318" stroke-width="3" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="while 終了条件" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / while</p>
+          <h2>終了条件とテンプレート</h2>
+          <ul class="points">
+            <li><code>ng - ok &gt; 1</code> の間は、まだ間に候補がある</li>
+            <li>終了時は <code>ng - ok == 1</code></li>
+            <li>最大の Yes は <code>ok</code></li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>最大のYesを探す</span><span>Python</span></div>
+          <pre><code class="language-python">ok = 0
+ng = N + 1
+
+while ng - ok &gt; 1:
+    mid = (ok + ng) // 2
+
+    if is_valid(mid):
+        ok = mid
+    else:
+        ng = mid
+
+print(ok)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="while 章まとめ" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Chapter Summary</p>
+        <h2>実装(while文)のまとめ</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">Invariant</span><code>ok</code> は常に Yes、<code>ng</code> は常に No。</div>
+          <div class="card yellow"><span class="mini-label">Update</span><code>mid</code> を判定し、Yesなら <code>ok</code>、Noなら <code>ng</code> を動かす。</div>
+          <div class="card red"><span class="mini-label">Finish</span><code>ng - ok == 1</code> で境界が確定し、答えは <code>ok</code>。</div>
+        </div>
+        <p class="large">不変条件を決めてから書くと、境界条件を追いやすくなります。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="章扉 bisect" hidden>
+      <div class="slide-inner section-cover">
+        <h2>実装(bisectライブラリ)</h2>
+        <p class="lead">挿入位置と半開区間で、添え字の意味を整理します。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect 挿入位置" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / bisect</p>
+          <h2><code>bisect</code> は値ではなく挿入位置を返す</h2>
+          <ul class="points">
+            <li>対象は昇順ソート済みの配列</li>
+            <li>返るのは <code>0</code> から <code>N</code> までの「すき間」の番号</li>
+            <li>その位置で配列を左右に分けて読む</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="bisectは挿入位置を返す図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="58" text-anchor="middle" class="diagram-title">A = [1, 2, 2, 4, 7, 10]</text>
+            <g transform="translate(72 152)">
+              <rect x="24" y="0" width="66" height="60" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="104" y="0" width="66" height="60" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="184" y="0" width="66" height="60" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="264" y="0" width="66" height="60" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
+              <rect x="344" y="0" width="66" height="60" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <rect x="424" y="0" width="66" height="60" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <text x="57" y="38" text-anchor="middle" class="diagram-text">1</text>
+              <text x="137" y="38" text-anchor="middle" class="diagram-text">2</text>
+              <text x="217" y="38" text-anchor="middle" class="diagram-text">2</text>
+              <text x="297" y="38" text-anchor="middle" class="diagram-text">4</text>
+              <text x="377" y="38" text-anchor="middle" class="diagram-text">7</text>
+              <text x="457" y="38" text-anchor="middle" class="diagram-text">10</text>
+              <text x="24" y="100" text-anchor="middle" class="diagram-caption">0</text>
+              <text x="97" y="100" text-anchor="middle" class="diagram-caption">1</text>
+              <text x="177" y="100" text-anchor="middle" class="diagram-caption">2</text>
+              <text x="257" y="100" text-anchor="middle" class="diagram-caption">3</text>
+              <text x="337" y="100" text-anchor="middle" class="diagram-caption">4</text>
+              <text x="417" y="100" text-anchor="middle" class="diagram-caption">5</text>
+              <text x="497" y="100" text-anchor="middle" class="diagram-caption">6</text>
+            </g>
+            <text x="320" y="328" text-anchor="middle" class="diagram-caption">bisect の返り値は、要素番号ではなく挿入できる境目の番号</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect_left" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / bisect</p>
+          <h2><code>bisect_left(A, x)</code></h2>
+          <ul class="points">
+            <li><code>x</code> 以上になる最小の位置を返す</li>
+            <li><code>A[:l]</code> は \(x\) 未満</li>
+            <li><code>A[l:]</code> は \(x\) 以上</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="bisect_leftの意味">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="56" text-anchor="middle" class="diagram-title">bisect_left(A, 4) = 3</text>
+            <g transform="translate(78 150)">
+              <rect x="0" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="82" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="164" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="246" y="0" width="72" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <rect x="328" y="0" width="72" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <rect x="410" y="0" width="72" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <text x="36" y="40" text-anchor="middle" class="diagram-text">1</text>
+              <text x="118" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="200" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="282" y="40" text-anchor="middle" class="diagram-text">4</text>
+              <text x="364" y="40" text-anchor="middle" class="diagram-text">7</text>
+              <text x="446" y="40" text-anchor="middle" class="diagram-text">10</text>
+              <line x1="241" y1="-36" x2="241" y2="104" stroke="#2563eb" stroke-width="4"></line>
+              <text x="241" y="-48" text-anchor="middle" fill="#2563eb" font-weight="900">l = 3</text>
+              <text x="118" y="116" text-anchor="middle" class="diagram-caption">A[:l] &lt; 4</text>
+              <text x="365" y="116" text-anchor="middle" class="diagram-caption">A[l:] &gt;= 4</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect_right" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / bisect</p>
+          <h2><code>bisect_right(A, x)</code></h2>
+          <ul class="points">
+            <li><code>x</code> を超える最小の位置を返す</li>
+            <li><code>A[:r]</code> は \(x\) 以下</li>
+            <li><code>A[r:]</code> は \(x\) より大きい</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="bisect_rightの意味">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="56" text-anchor="middle" class="diagram-title">bisect_right(A, 4) = 4</text>
+            <g transform="translate(78 150)">
+              <rect x="0" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="82" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="164" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="246" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="328" y="0" width="72" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <rect x="410" y="0" width="72" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <text x="36" y="40" text-anchor="middle" class="diagram-text">1</text>
+              <text x="118" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="200" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="282" y="40" text-anchor="middle" class="diagram-text">4</text>
+              <text x="364" y="40" text-anchor="middle" class="diagram-text">7</text>
+              <text x="446" y="40" text-anchor="middle" class="diagram-text">10</text>
+              <line x1="323" y1="-36" x2="323" y2="104" stroke="#6d28d9" stroke-width="4"></line>
+              <text x="323" y="-48" text-anchor="middle" fill="#6d28d9" font-weight="900">r = 4</text>
+              <text x="160" y="116" text-anchor="middle" class="diagram-caption">A[:r] &lt;= 4</text>
+              <text x="405" y="116" text-anchor="middle" class="diagram-caption">A[r:] &gt; 4</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect 等しい区間" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Implementation / bisect</p>
+          <h2><code>[l, r)</code> が \(x\) と等しい区間</h2>
+          <ul class="points">
+            <li><code>l = bisect_left(A, x)</code> は \(x\) 以上の左端</li>
+            <li><code>r = bisect_right(A, x)</code> は \(x\) を超える左端</li>
+            <li>だから <code>A[l:r]</code> がちょうど \(x\) と等しい部分になる</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="[l,r)がxと等しい区間になる図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="54" text-anchor="middle" class="diagram-title">A = [1, 2, 2, 4, 7, 10], x = 2</text>
+            <text x="320" y="88" text-anchor="middle" class="diagram-caption">l = bisect_left(A, 2) = 1, r = bisect_right(A, 2) = 3</text>
+            <g transform="translate(78 150)">
+              <rect x="0" y="0" width="72" height="64" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+              <rect x="82" y="0" width="72" height="64" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
+              <rect x="164" y="0" width="72" height="64" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
+              <rect x="246" y="0" width="72" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <rect x="328" y="0" width="72" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <rect x="410" y="0" width="72" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <text x="36" y="40" text-anchor="middle" class="diagram-text">1</text>
+              <text x="118" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="200" y="40" text-anchor="middle" class="diagram-text">2</text>
+              <text x="282" y="40" text-anchor="middle" class="diagram-text">4</text>
+              <text x="364" y="40" text-anchor="middle" class="diagram-text">7</text>
+              <text x="446" y="40" text-anchor="middle" class="diagram-text">10</text>
+              <line x1="77" y1="-34" x2="77" y2="104" stroke="#2563eb" stroke-width="4"></line>
+              <line x1="241" y1="-34" x2="241" y2="104" stroke="#6d28d9" stroke-width="4"></line>
+              <text x="77" y="-46" text-anchor="middle" fill="#2563eb" font-weight="900">l=1</text>
+              <text x="241" y="-46" text-anchor="middle" fill="#6d28d9" font-weight="900">r=3</text>
+              <path d="M82 118 H236" stroke="#a16207" stroke-width="6" stroke-linecap="round"></path>
+              <text x="159" y="150" text-anchor="middle" fill="#a16207" font-weight="900">A[l:r] は 2 と等しい区間</text>
+            </g>
+            <text x="320" y="356" text-anchor="middle" class="diagram-caption">半開区間なので、左端 l は含み、右端 r は含まない</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect 個数計算" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Implementation / bisect</p>
+        <h2><code>l</code> と <code>r</code> で個数を読む</h2>
+        <p class="lead"><code>l = bisect_left(A, x)</code>, <code>r = bisect_right(A, x)</code>, <code>N = len(A)</code> とします。</p>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>数えたいもの</th>
+              <th>式</th>
+              <th>読み方</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>\(x\) 未満</td><td><code>l</code></td><td><code>A[:l]</code></td></tr>
+            <tr><td>\(x\) 以下</td><td><code>r</code></td><td><code>A[:r]</code></td></tr>
+            <tr><td>\(x\) 以上</td><td><code>N - l</code></td><td><code>A[l:]</code></td></tr>
+            <tr><td>\(x\) より大きい</td><td><code>N - r</code></td><td><code>A[r:]</code></td></tr>
+            <tr><td>\(x\) と等しい</td><td><code>r - l</code></td><td><code>A[l:r]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="bisect 章まとめ" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Chapter Summary</p>
+        <h2>実装(bisectライブラリ)のまとめ</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">Position</span><code>bisect</code> は値ではなく、境界となる挿入位置を返す。</div>
+          <div class="card yellow"><span class="mini-label">Interval</span><code>l = bisect_left(A, x)</code>, <code>r = bisect_right(A, x)</code> なら <code>A[l:r]</code> が \(x\) と等しい区間。</div>
+          <div class="card red"><span class="mini-label">Count</span><code>l</code>, <code>r</code>, <code>N</code> から、未満・以下・以上・超過・等しい個数を読む。</div>
+        </div>
+        <p class="large">添え字を「区間」として読むと、個数計算で混乱しにくくなります。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="章扉 問題を解く" hidden>
+      <div class="slide-inner section-cover">
+        <h2>問題を解く</h2>
+        <p class="lead">問題を単調な Yes / No 判定に落とし込む練習をします。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="解く型" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Thinking Pattern</p>
+        <h2>問題を解く型</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">1</span>値を仮定する</div>
+          <div class="card yellow"><span class="mini-label">2</span>Yes / No 判定を作る</div>
+          <div class="card red"><span class="mini-label">3</span>単調性を見て境界を探す</div>
+        </div>
+        <p class="large">「答えを直接求める」のが難しいとき、まず「この値は達成できるか？」に直す。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC231 C 概要" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC231 C - Counting 2</p>
+          <h2 class="overview-title">Counting 2</h2>
+          <a class="problem-link" href="https://atcoder.jp/contests/abc231/tasks/abc231_c" target="_blank" rel="noopener noreferrer">AtCoder の問題ページ</a>
+          <div class="problem-statement">
+            <div class="statement-box">
+              <h3>問題文</h3>
+              <p>\(N\) 人の生徒がいます。生徒 \(i\) の身長は \(A_i\) です。</p>
+              <p>\(Q\) 個の質問があり、各質問では整数 \(x_j\) が与えられます。身長が \(x_j\) 以上である生徒の人数を答えます。</p>
+            </div>
+            <div class="statement-box green">
+              <h3>制約</h3>
+              <ul>
+                <li>\(1 \le N,Q \le 2 \times 10^5\)</li>
+                <li>\(1 \le A_i,x_j \le 10^9\)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="身長が x 未満と x 以上に分かれる図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="54" text-anchor="middle" class="diagram-title">質問: x = 120 以上は何人?</text>
+            <line x1="78" y1="188" x2="562" y2="188" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 10"></line>
+            <text x="575" y="193" fill="#2563eb" font-weight="900">x</text>
+
+            <rect x="92" y="220" width="96" height="104" rx="8" fill="#dbeafe" stroke="#93c5fd"></rect>
+            <rect x="218" y="162" width="96" height="162" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="344" y="122" width="96" height="202" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="470" y="178" width="96" height="146" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+
+            <text x="140" y="351" text-anchor="middle" class="diagram-caption">100</text>
+            <text x="266" y="351" text-anchor="middle" class="diagram-caption">130</text>
+            <text x="392" y="351" text-anchor="middle" class="diagram-caption">160</text>
+            <text x="518" y="351" text-anchor="middle" class="diagram-caption">125</text>
+
+            <text x="140" y="143" text-anchor="middle" class="diagram-caption">未満</text>
+            <text x="390" y="96" text-anchor="middle" fill="#15803d" font-weight="900">以上</text>
+            <text x="320" y="390" text-anchor="middle" class="diagram-text">答え: 3人</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC231 C 愚直解" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC231 C</p>
+          <h2>愚直に数えるとどうなるか</h2>
+          <ul class="points">
+            <li>質問ごとに全員を見る実装では、最大ケースで \(\Theta(NQ)\) 回の確認が必要</li>
+            <li>\(N, Q \le 2 \times 10^5\) なので、最大で \(4 \times 10^{10}\) 回規模になり現実的でない</li>
+            <li>身長の並び順をうまく使って、まとめて数えられないだろうか？</li>
+          </ul>
+        </div>
+        <div class="card yellow">
+          <span class="mini-label">考えてみる</span>
+          質問は「\(x\) 以上の人数」。身長の順序を変えても答えが変わらないなら、何をしてから数えると楽になるだろう？
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC231 C 単調性" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC231 C</p>
+          <h2>ソートすると境界が見える</h2>
+          <ul class="points">
+            <li>小さい身長側は <code>No</code></li>
+            <li>ある位置から <code>Yes</code></li>
+            <li>最初の <code>Yes</code> が境界</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="ABC231 Cの身長配列境界">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="56" text-anchor="middle" class="diagram-title">A[i] >= x ?</text>
+            <text x="320" y="94" text-anchor="middle" class="diagram-caption">例: A = [100, 130, 160], x = 120</text>
+            <rect x="95" y="150" width="130" height="70" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <rect x="255" y="150" width="130" height="70" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="415" y="150" width="130" height="70" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <text x="160" y="193" text-anchor="middle" class="diagram-text">100</text>
+            <text x="320" y="193" text-anchor="middle" class="diagram-text">130</text>
+            <text x="480" y="193" text-anchor="middle" class="diagram-text">160</text>
+            <text x="160" y="260" text-anchor="middle" fill="#b42318" font-weight="900">No</text>
+            <text x="320" y="260" text-anchor="middle" fill="#15803d" font-weight="900">Yes</text>
+            <text x="480" y="260" text-anchor="middle" fill="#15803d" font-weight="900">Yes</text>
+            <line x1="240" y1="126" x2="240" y2="292" stroke="#2563eb" stroke-width="4" stroke-dasharray="9 7"></line>
+            <text x="240" y="326" text-anchor="middle" class="diagram-caption">idx = 1</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC231 C bisect_left" hidden>
+      <div class="slide-inner">
+        <p class="kicker">ABC231 C</p>
+        <h2>最初の Yes を <code>bisect_left</code> で探す</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">判定</span>\(A_i \ge x\)</div>
+          <div class="card yellow"><span class="mini-label">単調性</span><code>No ... No, Yes ... Yes</code></div>
+          <div class="card red"><span class="mini-label">境界</span>\(x\) 以上になる最小の <code>idx</code></div>
+        </div>
+        <p class="large"><code>bisect_left(A, x)</code> は、まさに「\(x\) 以上の最初の位置」を返します。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC231 C コード" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC231 C</p>
+          <h2>答えは \(N - \mathrm{idx}\)</h2>
+          <ul class="points">
+            <li><code>idx</code> より左は \(x\) 未満</li>
+            <li><code>idx</code> から右は \(x\) 以上</li>
+            <li>人数は \(\mathrm{idx}, \mathrm{idx}+1, \ldots, N-1\) の \(N-\mathrm{idx}\) 人</li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>abc231_c_bisect.py</span><span>Python</span></div>
+          <pre><code class="language-python">from bisect import bisect_left
+
+N, Q = [int(s) for s in input().split()]
+A = [int(s) for s in input().split()]
+A.sort()
+
+for _ in range(Q):
+    x = int(input())
+    idx = bisect_left(A, x)
+    ans = N - idx
+    print(ans)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC388 C 概要" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC388 C - Various Kagamimochi</p>
+          <h2 class="overview-title">Various Kagamimochi</h2>
+          <a class="problem-link" href="https://atcoder.jp/contests/abc388/tasks/abc388_c" target="_blank" rel="noopener noreferrer">AtCoder の問題ページ</a>
+          <div class="problem-statement">
+            <div class="statement-box">
+              <h3>問題文</h3>
+              <p>\(N\) 個の餅があります。餅 \(i\) の大きさは \(A_i\) で、配列は昇順に与えられます。</p>
+              <p>2個の餅を選び、一方を上、一方を下にします。上の餅の大きさが下の餅の半分以下なら、鏡餅として成立します。</p>
+              <p>少なくとも一方の餅が異なれば、別の鏡餅として数えます。</p>
+            </div>
+            <div class="statement-box green">
+              <h3>制約</h3>
+              <ul>
+                <li>\(2 \le N \le 5 \times 10^5\)</li>
+                <li>\(1 \le A_i \le 10^9\)</li>
+                <li>\(A_i \le A_{i+1}\)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="鏡餅になる条件を説明する図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="52" text-anchor="middle" class="diagram-title">鏡餅になる条件</text>
+            <text x="320" y="88" text-anchor="middle" class="diagram-caption">上の餅の大きさ <= 下の餅の大きさ / 2</text>
+
+            <rect x="54" y="118" width="244" height="238" rx="10" fill="#f8fafc" stroke="#d8e0e7"></rect>
+            <rect x="342" y="118" width="244" height="238" rx="10" fill="#f8fafc" stroke="#d8e0e7"></rect>
+
+            <text x="176" y="154" text-anchor="middle" fill="#15803d" font-weight="900" font-size="24">OK</text>
+            <text x="464" y="154" text-anchor="middle" fill="#b42318" font-weight="900" font-size="24">NG</text>
+
+            <ellipse cx="176" cy="278" rx="88" ry="32" fill="#dcfce7" stroke="#86efac" stroke-width="3"></ellipse>
+            <ellipse cx="176" cy="228" rx="48" ry="23" fill="#bbf7d0" stroke="#86efac" stroke-width="3"></ellipse>
+            <text x="176" y="234" text-anchor="middle" class="diagram-text">4</text>
+            <text x="176" y="284" text-anchor="middle" class="diagram-text">10</text>
+            <text x="176" y="335" text-anchor="middle" fill="#15803d" font-weight="900">4 <= 10 / 2</text>
+
+            <ellipse cx="464" cy="278" rx="88" ry="32" fill="#fee4e2" stroke="#fca5a5" stroke-width="3"></ellipse>
+            <ellipse cx="464" cy="218" rx="70" ry="29" fill="#fecaca" stroke="#fca5a5" stroke-width="3"></ellipse>
+            <text x="464" y="225" text-anchor="middle" class="diagram-text">7</text>
+            <text x="464" y="284" text-anchor="middle" class="diagram-text">10</text>
+            <text x="464" y="335" text-anchor="middle" fill="#b42318" font-weight="900">7 > 10 / 2</text>
+
+            <text x="176" y="190" text-anchor="middle" class="diagram-caption">上が十分小さい</text>
+            <text x="464" y="190" text-anchor="middle" class="diagram-caption">上が大きすぎる</text>
+            <text x="320" y="392" text-anchor="middle" class="diagram-caption">この条件を満たす2個の選び方を数える問題</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC388 C 愚直解" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC388 C</p>
+          <h2>ペアを直接数える難しさ</h2>
+          <ul class="points">
+            <li>2つの餅を全探索すると、調べるペア数は \(\Theta(N^2)\)</li>
+            <li>\(N \le 5 \times 10^5\) なので、最大で約 \(1.25 \times 10^{11}\) 組になり現実的でない</li>
+            <li>すべての組を見ずに、条件を満たす組数だけを数えたい</li>
+          </ul>
+        </div>
+        <div class="card yellow">
+          <span class="mini-label">考えてみる</span>
+          鏡餅の条件を使って、片方の餅を決めたとき、もう片方をまとめて数えられないだろうか？
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC388 C 固定する" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC388 C</p>
+          <h2>大きい餅 <code>a</code> を固定する</h2>
+          <ul class="points">
+            <li>条件: 小さい餅 \(b \le a / 2\)</li>
+            <li>整数なので <code>b &lt;= a // 2</code></li>
+            <li>配列は昇順。<code>A[i] &lt;= a // 2</code> は左側だけ Yes</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="ABC388 Cでaの半分以下を数える図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="56" text-anchor="middle" class="diagram-title">a = 10 なら a // 2 = 5</text>
+            <rect x="75" y="150" width="82" height="66" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="172" y="150" width="82" height="66" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="269" y="150" width="82" height="66" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+            <rect x="366" y="150" width="82" height="66" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <rect x="463" y="150" width="82" height="66" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+            <text x="116" y="190" text-anchor="middle" class="diagram-text">2</text>
+            <text x="213" y="190" text-anchor="middle" class="diagram-text">3</text>
+            <text x="310" y="190" text-anchor="middle" class="diagram-text">4</text>
+            <text x="407" y="190" text-anchor="middle" class="diagram-text">7</text>
+            <text x="504" y="190" text-anchor="middle" class="diagram-text">10</text>
+            <text x="213" y="265" text-anchor="middle" fill="#15803d" font-weight="900">Yes: 5以下</text>
+            <text x="455" y="265" text-anchor="middle" fill="#b42318" font-weight="900">No</text>
+            <line x1="360" y1="128" x2="360" y2="294" stroke="#2563eb" stroke-width="4" stroke-dasharray="9 7"></line>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC388 C bisect_right" hidden>
+      <div class="slide-inner">
+        <p class="kicker">ABC388 C</p>
+        <h2>右端の Yes を <code>bisect_right</code> で数える</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">判定</span><code>A[i] &lt;= a // 2</code></div>
+          <div class="card yellow"><span class="mini-label">単調性</span><code>Yes ... Yes, No ... No</code></div>
+          <div class="card red"><span class="mini-label">境界</span><code>a // 2</code> 以下の個数</div>
+        </div>
+        <p class="large"><code>bisect_right(A, a // 2)</code> は「<code>a // 2</code> 以下の要素数」を返します。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="ABC388 C 注意点" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">ABC388 C</p>
+          <h2>重複・同じサイズ・計算量の確認</h2>
+          <ul class="points">
+            <li>同じサイズでも餅が違えば別の組として数える</li>
+            <li><code>bisect_right</code> は重複分もまとめて数える</li>
+            <li>各 <code>a</code> について \(O(\log N)\)、合計 \(O(N \log N)\)</li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>abc388_c_bisect.py</span><span>Python</span></div>
+          <pre><code class="language-python">from bisect import bisect_right
+
+N = int(input())
+A = [int(s) for s in input().split()]
+A.sort()
+
+ans = 0
+for a in A:
+    ans += bisect_right(A, a // 2)
+
+print(ans)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 概要" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Typical90 001 - Yokan Party</p>
+          <h2 class="overview-title">Yokan Party</h2>
+          <a class="problem-link" href="https://atcoder.jp/contests/typical90/tasks/typical90_a" target="_blank" rel="noopener noreferrer">AtCoder の問題ページ</a>
+          <div class="problem-statement">
+            <div class="statement-box">
+              <h3>問題文</h3>
+              <p>長さ \(L\) のようかんがあり、左端から \(A_i\) の位置に \(N\) 個の切れ目があります。</p>
+              <p>このうち \(K\) 個を選んで切り、\(K+1\) 個のピースに分けます。スコアは、最も短いピースの長さです。</p>
+            </div>
+            <div class="statement-cols">
+              <div class="statement-box green">
+                <h3>制約</h3>
+                <ul>
+                  <li>\(1 \le K \le N \le 100000\)</li>
+                  <li>\(0 < A_1 < \cdots < A_N < L\)</li>
+                </ul>
+              </div>
+              <div class="statement-box yellow">
+                <h3>目的</h3>
+                <p>切り方を選んで、スコアの最大値を求めます。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="ようかんの切れ目とスコアの図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="54" text-anchor="middle" class="diagram-title">例: L = 34, K = 1</text>
+            <text x="320" y="90" text-anchor="middle" class="diagram-caption">切れ目: 8, 13, 26</text>
+
+            <rect x="70" y="175" width="500" height="72" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
+            <line x1="70" y1="160" x2="70" y2="265" stroke="#172033" stroke-width="3"></line>
+            <line x1="188" y1="160" x2="188" y2="265" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 7"></line>
+            <line x1="261" y1="148" x2="261" y2="277" stroke="#2563eb" stroke-width="5"></line>
+            <line x1="452" y1="160" x2="452" y2="265" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 7"></line>
+            <line x1="570" y1="160" x2="570" y2="265" stroke="#172033" stroke-width="3"></line>
+
+            <text x="70" y="302" text-anchor="middle" class="diagram-caption">0</text>
+            <text x="188" y="302" text-anchor="middle" class="diagram-caption">8</text>
+            <text x="261" y="302" text-anchor="middle" fill="#2563eb" font-weight="900">13</text>
+            <text x="452" y="302" text-anchor="middle" class="diagram-caption">26</text>
+            <text x="570" y="302" text-anchor="middle" class="diagram-caption">34</text>
+
+            <path d="M70 330 H261" stroke="#15803d" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M261 330 H570" stroke="#15803d" stroke-width="5" stroke-linecap="round"></path>
+            <text x="166" y="360" text-anchor="middle" class="diagram-caption">長さ13</text>
+            <text x="416" y="360" text-anchor="middle" class="diagram-caption">長さ21</text>
+            <text x="320" y="393" text-anchor="middle" class="diagram-text">スコア = min(13, 21) = 13</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 愚直解" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Typical90 001</p>
+          <h2>切り方を直接探すのは難しい</h2>
+          <ul class="points">
+            <li>\(N\) 個の切れ目から \(K\) 個を選ぶ必要がある</li>
+            <li>候補になる切り方は組合せ的に増える</li>
+            <li>求めたいのは「最短ピース長の最大値」</li>
+          </ul>
+        </div>
+        <div class="card yellow">
+          <span class="mini-label">考えてみる</span>
+          切り方そのものを全部見る代わりに、スコアの値に注目できないだろうか？
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 二分探索へ" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Typical90 001</p>
+          <h2>「最小値の最大化」は二分探索</h2>
+          <ul class="points">
+            <li>答え候補として、値 <code>x</code> を仮定する</li>
+            <li>問題を「最短ピース長を \(x\) 以上にできるか？」に変える</li>
+            <li>この Yes / No が単調なら、境界を探せる</li>
+          </ul>
+        </div>
+        <div class="problem-statement">
+          <div class="card yellow">
+            <span class="mini-label">競プロの格言</span>
+            「最小値の最大化」は二分探索。
+          </div>
+          <div class="card">
+            <span class="mini-label">探したい境界</span>
+            Yes になる最大の <code>x</code> が、スコアの最大値になる。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 判定" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Typical90 001</p>
+          <h2>「最短ピース長を \(x\) 以上にできるか？」</h2>
+          <ul class="points">
+            <li>左から見て、長さ \(x\) 以上になったら切る</li>
+            <li>できたピース数が \(K + 1\) 個以上なら Yes</li>
+            <li>この貪欲判定で「できるか」だけを調べる</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 640 420" role="img" aria-label="ようかんを左から貪欲に切る図">
+            <rect width="640" height="420" fill="#ffffff"></rect>
+            <text x="320" y="56" text-anchor="middle" class="diagram-title">左から長さ x 以上で切る</text>
+            <rect x="70" y="170" width="500" height="64" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
+            <line x1="70" y1="150" x2="70" y2="254" stroke="#172033" stroke-width="3"></line>
+            <line x1="220" y1="150" x2="220" y2="254" stroke="#2563eb" stroke-width="4"></line>
+            <line x1="390" y1="150" x2="390" y2="254" stroke="#2563eb" stroke-width="4"></line>
+            <line x1="570" y1="150" x2="570" y2="254" stroke="#172033" stroke-width="3"></line>
+            <text x="145" y="208" text-anchor="middle" class="diagram-text">>= x</text>
+            <text x="305" y="208" text-anchor="middle" class="diagram-text">>= x</text>
+            <text x="480" y="208" text-anchor="middle" class="diagram-text">>= x</text>
+            <text x="320" y="300" text-anchor="middle" class="diagram-caption">K+1個作れたら Yes</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 単調性" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Typical90 001</p>
+        <h2>\(x\) が小さいほど Yes、大きいほど No</h2>
+        <div class="visual">
+          <svg viewBox="0 0 900 330" role="img" aria-label="xが大きくなるとYesからNoへ変わる図">
+            <rect width="900" height="330" fill="#ffffff"></rect>
+            <text x="450" y="48" text-anchor="middle" class="diagram-title">判定: 最短ピース長を x 以上にできる?</text>
+            <g transform="translate(120 120)">
+              <rect x="0" y="0" width="110" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <rect x="130" y="0" width="110" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <rect x="260" y="0" width="110" height="64" rx="8" fill="#dcfce7" stroke="#86efac"></rect>
+              <rect x="390" y="0" width="110" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <rect x="520" y="0" width="110" height="64" rx="8" fill="#fee4e2" stroke="#fca5a5"></rect>
+              <text x="55" y="39" text-anchor="middle" class="diagram-result">Yes</text>
+              <text x="185" y="39" text-anchor="middle" class="diagram-result">Yes</text>
+              <text x="315" y="39" text-anchor="middle" class="diagram-result">Yes</text>
+              <text x="445" y="39" text-anchor="middle" class="diagram-result">No</text>
+              <text x="575" y="39" text-anchor="middle" class="diagram-result">No</text>
+              <text x="0" y="104" class="diagram-caption">x 小</text>
+              <text x="590" y="104" text-anchor="end" class="diagram-caption">x 大</text>
+              <line x1="380" y1="-24" x2="380" y2="92" stroke="#2563eb" stroke-width="4" stroke-dasharray="9 7"></line>
+            </g>
+          </svg>
+        </div>
+        <p class="large">探すのは「できる最大の \(x\)」。だから <code>ok</code> を Yes 側、<code>ng</code> を No 側に置きます。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="Typical90 001 コード" hidden>
+      <div class="slide-inner split">
+        <div>
+          <p class="kicker">Typical90 001</p>
+          <h2>貪欲判定 <code>is_valid(x)</code> と <code>ok/ng</code></h2>
+          <ul class="points">
+            <li><code>is_valid(mid)</code> が Yes なら、もっと大きい値を狙う</li>
+            <li>Noなら <code>mid</code> は大きすぎる</li>
+            <li>最後に残る <code>ok</code> が答え</li>
+          </ul>
+        </div>
+        <div class="code-panel">
+          <div class="code-title"><span>typical90_001.py</span><span>Python</span></div>
+          <pre><code class="language-python">def is_valid(mid):
+    piece = 0
+    curr = 0
+    for pos in cut_pos:
+        if pos - curr &gt;= mid:
+            piece += 1
+            curr = pos
+    return piece &gt;= K + 1
+
+ok, ng = 0, L + 1
+while ng - ok &gt; 1:
+    mid = (ok + ng) // 2
+    if is_valid(mid):
+        ok = mid
+    else:
+        ng = mid</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="問題を解く 章まとめ" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Chapter Summary</p>
+        <h2>問題を解く章のまとめ</h2>
+        <div class="three">
+          <div class="card"><span class="mini-label">ABC231 C</span>身長が \(x\) 以上になる最初の位置を探す。</div>
+          <div class="card yellow"><span class="mini-label">ABC388 C</span>大きい餅を固定し、上に置ける餅の個数を数える。</div>
+          <div class="card red"><span class="mini-label">Typical90 001</span>最短ピース長 \(x\) を仮定し、達成可能かを判定する。</div>
+        </div>
+        <p class="large">どの問題も「固定する → Yes / No 判定を作る → 境界を探す」という形に落とし込みます。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="章扉 まとめ" hidden>
+      <div class="slide-inner section-cover">
+        <h2>まとめ</h2>
+        <p class="lead">二分探索で考えるときの流れを最後に確認します。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="今日のまとめ" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Summary</p>
+        <h2>今日のまとめ: 境界を探す発想</h2>
+        <div class="three">
+          <div class="card">
+            <span class="mini-label">Step 1</span>
+            問題を「Yes / No で答えられる判定」に直す。
+          </div>
+          <div class="card yellow">
+            <span class="mini-label">Step 2</span>
+            Yes / No が一度だけ切り替わる単調性を確認する。
+          </div>
+          <div class="card red">
+            <span class="mini-label">Step 3</span>
+            境界を <code>while</code> または <code>bisect</code> で探す。
+          </div>
+        </div>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>問題</th>
+              <th>仮定する値</th>
+              <th>判定</th>
+              <th>単調性</th>
+              <th>道具</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ABC231 C</td>
+              <td>位置 \(i\)</td>
+              <td>\(A_i \ge x\)</td>
+              <td>No → Yes</td>
+              <td><code>bisect_left</code></td>
+            </tr>
+            <tr>
+              <td>ABC388 C</td>
+              <td>大きい餅 <code>a</code></td>
+              <td><code>A[i] &lt;= a // 2</code></td>
+              <td>Yes → No</td>
+              <td><code>bisect_right</code></td>
+            </tr>
+            <tr>
+              <td>Typical90 001</td>
+              <td>最短長 \(x\)</td>
+              <td>\(x\) 以上で \(K+1\) 個作れるか</td>
+              <td>Yes → No</td>
+              <td><code>while</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="large">二分探索は「中央を見るテクニック」ではなく、「単調な判定の境界を探す考え方」です。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-slide data-title="練習問題・応用問題" hidden>
+      <div class="slide-inner">
+        <p class="kicker">Practice</p>
+        <h2>練習問題・応用問題</h2>
+        <p class="lead">今日学んだことの応用的な練習問題です。まずは問題文を読んで、どこに今日の考え方が使えそうか考えてみてください。</p>
+        <div class="practice-grid">
+          <a class="practice-card" href="https://atcoder.jp/contests/abc353/tasks/abc353_c" target="_blank" rel="noreferrer">
+            <span class="mini-label">ABC353 C</span>
+            <span class="practice-title">Sigma Problem</span>
+            <span class="practice-note">数列から2つ選んだときの和に関する問題。</span>
+          </a>
+          <a class="practice-card" href="https://atcoder.jp/contests/abc334/tasks/abc334_d" target="_blank" rel="noreferrer">
+            <span class="mini-label">ABC334 D</span>
+            <span class="practice-title">Reindeer and Sleigh</span>
+            <span class="practice-note">複数の質問に対して、買える個数を答える問題。</span>
+          </a>
+          <a class="practice-card" href="https://atcoder.jp/contests/abc321/tasks/abc321_d" target="_blank" rel="noreferrer">
+            <span class="mini-label">ABC321 D</span>
+            <span class="practice-title">Set Menu</span>
+            <span class="practice-note">主菜と副菜の組み合わせの値段を扱う問題。</span>
+          </a>
+          <a class="practice-card" href="https://atcoder.jp/contests/abc319/tasks/abc319_d" target="_blank" rel="noreferrer">
+            <span class="mini-label">ABC319 D</span>
+            <span class="practice-title">Minimum Width</span>
+            <span class="practice-note">文章を指定された行数に収める幅を考える問題。</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="controls" aria-label="スライド操作">
+    <button id="prevSlide" type="button">前へ</button>
+    <button class="menu-toggle" id="appendixToggle" type="button" aria-expanded="false" aria-controls="appendixPanel" aria-label="目次メニューを開く">
+      <span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span>目次</span>
+    </button>
+    <div class="dots" id="slideDots" aria-label="スライド一覧"></div>
+    <span class="counter" id="slideCounter">1 / 42</span>
+    <button class="primary" id="nextSlide" type="button">次へ</button>
+  </nav>
+
+  <div class="appendix-backdrop" id="appendixBackdrop" hidden></div>
+  <aside class="appendix-panel" id="appendixPanel" aria-labelledby="appendixTitle" hidden>
+    <div class="appendix-head">
+      <h2 id="appendixTitle">目次メニュー</h2>
+      <button id="appendixClose" type="button">閉じる</button>
+    </div>
+    <nav class="appendix-menu" id="appendixLinks" aria-label="章ジャンプ"></nav>
+  </aside>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+  <script>
+    function initHighlighting() {
+      if (!window.hljs) return;
+      document.querySelectorAll("pre code").forEach((block) => {
+        hljs.highlightElement(block);
+      });
+    }
+
+    function initMath() {
+      if (!window.renderMathInElement) return;
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
+        ],
+        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+      });
+    }
+
+    function clampPercent(value, min, max) {
+      return ((value - min) / (max - min)) * 100;
+    }
+
+    function isInteractiveTarget(target) {
+      return target instanceof Element && Boolean(target.closest("button, input, select, textarea, a"));
+    }
+
+    function createSlideGuessDemo() {
+      const secretInput = document.getElementById("slideGuessSecret");
+      if (!secretInput) return;
+
+      const secretValueEl = document.getElementById("slideGuessSecretValue");
+      const rangeEl = document.getElementById("slideGuessRange");
+      const questionEl = document.getElementById("slideGuessQuestion");
+      const countEl = document.getElementById("slideGuessCount");
+      const windowEl = document.getElementById("slideGuessWindow");
+      const secretLine = document.getElementById("slideGuessSecretLine");
+      const midLine = document.getElementById("slideGuessMidLine");
+      const logEl = document.getElementById("slideGuessLog");
+      const stepButton = document.getElementById("slideGuessStep");
+      const resetButton = document.getElementById("slideGuessReset");
+
+      let low = 1;
+      let high = 100;
+      let count = 0;
+      let logs = [];
+
+      const currentMid = () => Math.floor((low + high) / 2);
+
+      function render() {
+        const secret = Number(secretInput.value);
+        const mid = currentMid();
+        secretValueEl.textContent = String(secret);
+        rangeEl.textContent = `${low}〜${high}`;
+        questionEl.textContent = low === high ? "確定" : `${mid}以下ですか?`;
+        countEl.textContent = String(count);
+
+        windowEl.style.left = `${clampPercent(low, 1, 100)}%`;
+        windowEl.style.width = `${Math.max(0.8, clampPercent(high, 1, 100) - clampPercent(low, 1, 100))}%`;
+        secretLine.style.left = `${clampPercent(secret, 1, 100)}%`;
+        midLine.style.left = `${clampPercent(mid, 1, 100)}%`;
+
+        const firstLine = low === high
+          ? `<p><strong>${low}</strong> が答えです。</p>`
+          : `<p>赤線の <strong>${mid}</strong> で「${mid}以下ですか？」と聞きます。</p>`;
+        logEl.innerHTML = firstLine + logs.map((line) => `<p>${line}</p>`).join("");
+      }
+
+      function step() {
+        if (low === high) return;
+        const secret = Number(secretInput.value);
+        const mid = currentMid();
+        count += 1;
+
+        if (secret <= mid) {
+          logs.unshift(`${count}回目: ${mid}以下ですか? Yes。候補は ${low}〜${mid}。`);
+          high = mid;
+        } else {
+          logs.unshift(`${count}回目: ${mid}以下ですか? No。候補は ${mid + 1}〜${high}。`);
+          low = mid + 1;
+        }
+        logs = logs.slice(0, 4);
+        render();
+      }
+
+      function reset() {
+        low = 1;
+        high = 100;
+        count = 0;
+        logs = [];
+        render();
+      }
+
+      secretInput.addEventListener("input", reset);
+      stepButton.addEventListener("click", step);
+      resetButton.addEventListener("click", reset);
+      reset();
+    }
+
+    const CHAPTERS = [
+      { start: 0, end: 0, range: "1", label: "タイトル" },
+      { start: 1, end: 6, range: "2-7", label: "概要" },
+      { start: 7, end: 12, range: "8-13", label: "実装(while文)" },
+      { start: 13, end: 19, range: "14-20", label: "実装(bisectライブラリ)" },
+      { start: 20, end: 20, range: "21", label: "問題を解く" },
+      { start: 21, end: 21, range: "22", label: "問題を解く型" },
+      { start: 22, end: 26, range: "23-27", label: "1問目: ABC231 C" },
+      { start: 27, end: 31, range: "28-32", label: "2問目: ABC388 C" },
+      { start: 32, end: 37, range: "33-38", label: "3問目: Typical90 001" },
+      { start: 38, end: 38, range: "39", label: "問題を解くまとめ" },
+      { start: 39, end: 40, range: "40-41", label: "今日のまとめ" },
+      { start: 41, end: 41, range: "42", label: "練習問題・応用問題" }
+    ];
+
+    const MENU_SECTIONS = [
+      { heading: "1. タイトル", items: [CHAPTERS[0]] },
+      {
+        heading: "2-7. 概要",
+        items: [
+          { start: 1, end: 1, range: "2", label: "章の概要" },
+          { start: 2, end: 2, range: "3", label: "1〜100の数当て" },
+          { start: 3, end: 3, range: "4", label: "候補を半分にする" },
+          { start: 4, end: 4, range: "5", label: "Yes / Noで見てみる" },
+          { start: 5, end: 5, range: "6", label: "単調性" },
+          { start: 6, end: 6, range: "7", label: "章のまとめ" }
+        ]
+      },
+      {
+        heading: "8-13. 実装(while文)",
+        items: [
+          { start: 7, end: 7, range: "8", label: "章の概要" },
+          { start: 8, end: 8, range: "9", label: "境界をはさむ" },
+          { start: 9, end: 9, range: "10", label: "めぐる式の不変条件" },
+          { start: 10, end: 10, range: "11", label: "midの更新" },
+          { start: 11, end: 11, range: "12", label: "while文テンプレート" },
+          { start: 12, end: 12, range: "13", label: "章のまとめ" }
+        ]
+      },
+      {
+        heading: "14-20. 実装(bisectライブラリ)",
+        items: [
+          { start: 13, end: 13, range: "14", label: "章の概要" },
+          { start: 14, end: 14, range: "15", label: "bisectは挿入位置" },
+          { start: 15, end: 15, range: "16", label: "bisect_left" },
+          { start: 16, end: 16, range: "17", label: "bisect_right" },
+          { start: 17, end: 17, range: "18", label: "[l, r) は等しい区間" },
+          { start: 18, end: 18, range: "19", label: "個数計算表" },
+          { start: 19, end: 19, range: "20", label: "章のまとめ" }
+        ]
+      },
+      { heading: "21-39. 問題を解く", items: [CHAPTERS[4], CHAPTERS[5], CHAPTERS[6], CHAPTERS[7], CHAPTERS[8], CHAPTERS[9]] },
+      {
+        heading: "40-42. まとめ",
+        items: [
+          { start: 39, end: 39, range: "40", label: "章の概要" },
+          { start: 40, end: 40, range: "41", label: "今日のまとめ" },
+          { start: 41, end: 41, range: "42", label: "練習問題・応用問題" }
+        ]
+      }
+    ];
+
+    function chapterForIndex(index) {
+      return CHAPTERS.find((chapter) => chapter.start <= index && index <= chapter.end) || CHAPTERS[0];
+    }
+
+    function createDeck() {
+      const slides = Array.from(document.querySelectorAll("[data-slide]"));
+      const prevButton = document.getElementById("prevSlide");
+      const nextButton = document.getElementById("nextSlide");
+      const appendixToggle = document.getElementById("appendixToggle");
+      const appendixPanel = document.getElementById("appendixPanel");
+      const appendixBackdrop = document.getElementById("appendixBackdrop");
+      const appendixClose = document.getElementById("appendixClose");
+      const appendixLinks = document.getElementById("appendixLinks");
+      const dots = document.getElementById("slideDots");
+      const counter = document.getElementById("slideCounter");
+      const progress = document.getElementById("progress");
+      let current = 0;
+
+      function indexFromHash() {
+        const raw = window.location.hash.replace("#", "");
+        const page = Number(raw);
+        if (!Number.isInteger(page)) return 0;
+        return Math.min(Math.max(page - 1, 0), slides.length - 1);
+      }
+
+      const dotButtons = slides.map((slide, index) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "dot";
+        dot.setAttribute("aria-label", `${index + 1}枚目: ${slide.dataset.title || ""}`);
+        dot.addEventListener("click", () => show(index, true));
+        dots.append(dot);
+        return dot;
+      });
+
+      slides.forEach((slide, index) => {
+        if (slide.querySelector(".section-cover")) return;
+        const chapter = chapterForIndex(index);
+        const badge = document.createElement("div");
+        badge.className = "chapter-badge";
+        badge.textContent = `${chapter.range}: ${chapter.label}`;
+        slide.prepend(badge);
+      });
+
+      function setAppendixOpen(open) {
+        appendixPanel.hidden = !open;
+        appendixBackdrop.hidden = !open;
+        appendixToggle.setAttribute("aria-expanded", String(open));
+      }
+
+      const appendixButtons = [];
+      MENU_SECTIONS.forEach((section) => {
+        const sectionEl = document.createElement("section");
+        sectionEl.className = "appendix-section";
+
+        const heading = document.createElement("h3");
+        heading.textContent = section.heading;
+        sectionEl.append(heading);
+
+        const items = document.createElement("div");
+        items.className = "appendix-items";
+
+        section.items.forEach((chapter) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "appendix-link";
+          button.textContent = `${chapter.range}: ${chapter.label}`;
+          button.addEventListener("click", () => {
+            show(chapter.start, true);
+            setAppendixOpen(false);
+          });
+          items.append(button);
+          appendixButtons.push({ button, chapter });
+        });
+
+        sectionEl.append(items);
+        appendixLinks.append(sectionEl);
+      });
+
+      function show(index, updateHash) {
+        current = Math.min(Math.max(index, 0), slides.length - 1);
+        slides.forEach((slide, slideIndex) => {
+          const active = slideIndex === current;
+          slide.classList.toggle("is-active", active);
+          slide.hidden = !active;
+          slide.setAttribute("aria-hidden", String(!active));
+        });
+
+        dotButtons.forEach((dot, dotIndex) => {
+          const active = dotIndex === current;
+          dot.classList.toggle("is-active", active);
+          dot.setAttribute("aria-current", active ? "step" : "false");
+        });
+
+        appendixButtons.forEach(({ button, chapter }) => {
+          const active = chapter.start <= current && current <= chapter.end;
+          button.classList.toggle("is-current", active);
+          button.setAttribute("aria-current", active ? "step" : "false");
+        });
+
+        prevButton.disabled = current === 0;
+        nextButton.disabled = current === slides.length - 1;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        progress.style.setProperty("--progress", `${((current + 1) / slides.length) * 100}%`);
+
+        if (updateHash) {
+          history.replaceState(null, "", `#${current + 1}`);
+        }
+      }
+
+      function next() {
+        show(current + 1, true);
+      }
+
+      function prev() {
+        show(current - 1, true);
+      }
+
+      prevButton.addEventListener("click", prev);
+      nextButton.addEventListener("click", next);
+      appendixToggle.addEventListener("click", () => setAppendixOpen(appendixPanel.hidden));
+      appendixClose.addEventListener("click", () => setAppendixOpen(false));
+      appendixBackdrop.addEventListener("click", () => setAppendixOpen(false));
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setAppendixOpen(false);
+          return;
+        }
+        if (isInteractiveTarget(event.target)) return;
+        if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+          event.preventDefault();
+          next();
+        }
+        if (event.key === "ArrowLeft" || event.key === "PageUp") {
+          event.preventDefault();
+          prev();
+        }
+      });
+
+      window.addEventListener("hashchange", () => show(indexFromHash(), false));
+      show(indexFromHash(), false);
+    }
+
+    initHighlighting();
+    initMath();
+    createSlideGuessDemo();
+    createDeck();
+  </script>
+</body>
+</html>
