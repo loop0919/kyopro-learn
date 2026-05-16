@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Typical90 001 貪欲判定 補足ノート</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
   <style>
     :root {
       --bg: #f5f7fa;
@@ -175,9 +176,12 @@
     }
 
     .card {
-      display: grid;
-      gap: 0.35rem;
+      display: block;
       border-left-color: var(--green);
+    }
+
+    .card-text {
+      display: block;
     }
 
     .card.yellow {
@@ -190,6 +194,7 @@
 
     .mini-label {
       display: block;
+      margin-bottom: 0.35rem;
       color: var(--muted);
       font-size: 0.76rem;
       font-weight: 900;
@@ -428,6 +433,41 @@
       white-space: nowrap;
     }
 
+    .example-slide {
+      gap: 0.75rem;
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      align-content: stretch;
+      padding-top: clamp(1rem, 2.2vw, 1.8rem);
+      padding-bottom: clamp(1rem, 2.2vw, 1.8rem);
+    }
+
+    .example-slide h2 {
+      font-size: clamp(1.45rem, 2.7vw, 2.25rem);
+    }
+
+    .example-slide .lead {
+      font-size: clamp(0.96rem, 1.45vw, 1.14rem);
+    }
+
+    .example-slide .two-col {
+      gap: 0.6rem;
+    }
+
+    .example-slide .card {
+      padding-block: 0.56rem;
+    }
+
+    .example-slide .visual {
+      min-height: 0;
+    }
+
+    .example-slide .visual svg {
+      width: 100%;
+      height: 100%;
+    }
+
     @media (max-width: 780px), (max-height: 620px) {
       body {
         display: block;
@@ -463,6 +503,15 @@
         grid-template-columns: 1fr;
       }
 
+      .example-slide {
+        height: auto;
+        grid-template-rows: none;
+      }
+
+      .example-slide .visual svg {
+        height: auto;
+      }
+
       .controls {
         width: min(100vw - 1rem, 720px);
         justify-content: space-between;
@@ -489,32 +538,34 @@
       <div class="slide-inner split">
         <div>
           <p class="kicker">Hint</p>
-          <h1>まずは <var>x</var> を決めて考える</h1>
-          <p class="lead">「答えが <var>x</var> 以上にできるか？」だけを判定します。切り方の最適化はいったん忘れます。</p>
+          <h1>Yes / No の判定方法は？</h1>
+          <p class="lead">候補 \(x\) を固定すると、知りたいのは「長さ \(x\) 以上のピースを \(K + 1\) 個作れるか」です。</p>
           <ul class="points">
-            <li>左端から順番に切れ目を見る</li>
-            <li>今のピースが長さ <var>x</var> 以上になったら、そこで切ってよいか考える</li>
-            <li><var>K + 1</var> 個のピースを作れたら Yes</li>
+            <li>Yes と言うには、条件を満たすピースが \(K + 1\) 個あれば十分</li>
+            <li>No と言うには、どれだけ頑張っても \(K + 1\) 個に届かないと分かればよい</li>
+            <li>では、まず「条件を満たすピースを何個まで作れるか」を数えられないだろうか？</li>
           </ul>
         </div>
         <div class="visual">
-          <svg viewBox="0 0 640 420" role="img" aria-label="x以上になったら切るヒント図">
+          <svg viewBox="0 0 640 420" role="img" aria-label="x以上のピース数を数えるヒント図">
             <rect width="640" height="420" fill="#ffffff"></rect>
-            <text x="320" y="55" text-anchor="middle" class="diagram-title">長さ x 以上になった場所を探す</text>
+            <text x="320" y="55" text-anchor="middle" class="diagram-title">K+1 個に届くかを知りたい</text>
             <rect x="70" y="170" width="500" height="64" rx="8" fill="#fef3c7" stroke="#facc15"></rect>
             <line x1="70" y1="145" x2="70" y2="258" stroke="#172033" stroke-width="3"></line>
             <line x1="188" y1="150" x2="188" y2="253" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 7"></line>
             <line x1="261" y1="150" x2="261" y2="253" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 7"></line>
             <line x1="452" y1="150" x2="452" y2="253" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 7"></line>
             <line x1="570" y1="145" x2="570" y2="258" stroke="#172033" stroke-width="3"></line>
-            <path d="M70 290 H261" stroke="#2563eb" stroke-width="6" stroke-linecap="round"></path>
-            <path d="M261 290 H452" stroke="#d8e0e7" stroke-width="6" stroke-linecap="round"></path>
-            <path d="M452 290 H570" stroke="#d8e0e7" stroke-width="6" stroke-linecap="round"></path>
-            <text x="166" y="326" text-anchor="middle" class="diagram-text">ここで x 以上?</text>
+            <path d="M70 292 H261" stroke="#2563eb" stroke-width="6" stroke-linecap="round"></path>
+            <path d="M261 292 H452" stroke="#15803d" stroke-width="6" stroke-linecap="round"></path>
+            <path d="M452 292 H570" stroke="#d8e0e7" stroke-width="6" stroke-linecap="round"></path>
+            <text x="166" y="326" text-anchor="middle" class="diagram-text">1個目?</text>
+            <text x="356" y="326" text-anchor="middle" class="diagram-text">2個目?</text>
+            <text x="511" y="326" text-anchor="middle" class="diagram-caption">足りる?</text>
             <text x="188" y="130" text-anchor="middle" class="diagram-caption">8</text>
             <text x="261" y="130" text-anchor="middle" class="diagram-caption">13</text>
             <text x="452" y="130" text-anchor="middle" class="diagram-caption">26</text>
-            <text x="320" y="372" text-anchor="middle" class="diagram-caption">早く切るほど、右側に残る長さは増える</text>
+            <text x="320" y="372" text-anchor="middle" class="diagram-caption">切り方そのものより、まず個数が足りるかを見る</text>
           </svg>
         </div>
       </div>
@@ -524,29 +575,29 @@
       <div class="slide-inner split">
         <div>
           <p class="kicker">Question</p>
-          <h2>判定したいことは「全部のピースを <var>x</var> 以上にできるか」</h2>
+          <h2>判定を「個数を数える問題」に変える</h2>
           <ul class="points">
-            <li>元の問題は「最短ピース長の最大値」を求める</li>
-            <li>判定では、答え候補 <var>x</var> を固定する</li>
-            <li>作るべきピース数は、<var>K</var> 回切るので <var>K + 1</var> 個</li>
+            <li>欲しい判定は「全部のピースを \(x\) 以上にできるか」</li>
+            <li>これは「長さ \(x\) 以上のピースを何個作れるか」と見られる</li>
+            <li>最大個数が \(K + 1\) 個以上なら、必要なピース数を満たせる</li>
           </ul>
         </div>
         <div class="two-col">
           <div class="card yellow">
-            <span class="mini-label">固定する値</span>
-            <var>x</var> = この長さ以上のピースだけで分けたい
+            <span class="mini-label">直接考える</span>
+            \(K\) 回切って、全部 \(x\) 以上に分けられるか？
           </div>
           <div class="card">
-            <span class="mini-label">返す答え</span>
-            できるなら Yes、できないなら No
+            <span class="mini-label">数える形</span>
+            \(x\) 以上のピースを、できるだけ多く作る
           </div>
           <div class="card red">
-            <span class="mini-label">見ないもの</span>
-            どの切り方が最良かは、判定中は探さない
+            <span class="mini-label">判定</span>
+            作れた個数が \(K + 1\) 未満なら No
           </div>
           <div class="card">
-            <span class="mini-label">二分探索</span>
-            Yes になる最大の <var>x</var> をあとで探す
+            <span class="mini-label">次の疑問</span>
+            どうすれば「できるだけ多く」作れる？
           </div>
         </div>
       </div>
@@ -556,9 +607,9 @@
       <div class="slide-inner split">
         <div>
           <p class="kicker">Greedy</p>
-          <h2>長さ <var>x</var> 以上になったら、そこで切ってよい</h2>
+          <h2>多く作るなら、作れるたびに切る</h2>
           <ul class="points">
-            <li>今のピースが <var>x</var> 以上なら、条件はもう満たしている</li>
+            <li>今のピースが \(x\) 以上なら、条件はもう満たしている</li>
             <li>さらに右で切ると、その分だけ残りの長さが短くなる</li>
             <li>だから「最初に切れる場所」で切るのが、後ろのピースに一番やさしい</li>
           </ul>
@@ -590,20 +641,20 @@
     </section>
 
     <section class="note-slide" data-slide>
-      <div class="slide-inner stack">
+      <div class="slide-inner stack example-slide">
         <div>
           <p class="kicker">Example</p>
-          <h2><var>L = 34</var>, <var>K = 1</var>, <var>A = [8, 13, 26]</var></h2>
-          <p class="lead">1回切って2ピースを作ります。候補 <var>x</var> を変えると、判定が Yes から No に切り替わります。</p>
+          <h2>\(L = 34\), \(K = 1\), \(A = [8, 13, 26]\)</h2>
+          <p class="lead">1回切って2ピースを作ります。候補 \(x\) を変えると、判定が Yes から No に切り替わります。</p>
         </div>
         <div class="two-col">
           <div class="card">
-            <span class="mini-label">x = 13</span>
-            13の位置で切ると長さは <code>13</code> と <code>21</code>。2ピースとも13以上なので Yes。
+            <span class="mini-label">\(x = 13\)</span>
+            <span class="card-text">\(13\) の位置で切ると長さは \(13\) と \(21\)。2ピースとも \(13\) 以上なので Yes。</span>
           </div>
           <div class="card red">
-            <span class="mini-label">x = 14</span>
-            26の位置まで待つ必要があり、右端までの残りは <code>8</code>。2ピース作れないので No。
+            <span class="mini-label">\(x = 14\)</span>
+            <span class="card-text">\(26\) の位置まで待つ必要があり、右端までの残りは \(8\)。2ピース作れないので No。</span>
           </div>
         </div>
         <div class="visual">
@@ -639,11 +690,11 @@
       <div class="slide-inner split">
         <div>
           <p class="kicker">Count</p>
-          <h2><var>K + 1</var> 個以上作れたら Yes</h2>
+          <h2>\(K + 1\) 個以上作れたら Yes</h2>
           <ul class="points">
             <li>判定は「最低でも必要な個数を作れるか」を見る</li>
             <li>多く切れそうなら、余分な切れ目を選ばなければよい</li>
-            <li>右端 <var>L</var> も最後のピースの終点として数える</li>
+            <li>右端 \(L\) も最後のピースの終点として数える</li>
           </ul>
         </div>
         <div class="visual">
@@ -697,7 +748,7 @@ cut_pos = [<span class="hl-num">0</span>] + A + [L]
             <div class="trace-step"><strong>pos</strong><span>今見ている切れ目</span></div>
             <div class="trace-step"><strong>curr</strong><span>直前に切った位置</span></div>
             <div class="trace-step"><strong>piece</strong><span>作れたピース数</span></div>
-            <div class="trace-step"><strong>return</strong><span>K+1個なら Yes</span></div>
+            <div class="trace-step"><strong>return</strong><span>\(K + 1\) 個なら Yes</span></div>
           </div>
         </div>
       </div>
@@ -711,7 +762,20 @@ cut_pos = [<span class="hl-num">0</span>] + A + [L]
     <button class="primary" id="nextSlide" type="button">次へ</button>
   </nav>
 
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
   <script>
+    function initMath() {
+      if (!window.renderMathInElement) return;
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
+        ],
+        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "svg"]
+      });
+    }
+
     function createDeck() {
       const slides = Array.from(document.querySelectorAll("[data-slide]"));
       const prevButton = document.getElementById("prevSlide");
@@ -759,6 +823,7 @@ cut_pos = [<span class="hl-num">0</span>] + A + [L]
     }
 
     createDeck();
+    initMath();
   </script>
 </body>
 </html>
